@@ -89,11 +89,12 @@ views.py::
                 pass
         
         actual_query = query(related=related)
+        #ALERT: NEVER PASS USER INPUT AS EVALUATED VARIABLES
+        #use literals for that
+
         if request.REQUEST.get('search', None): #bonus: previus search stored too
             actual_query.literals(search=request.REQUEST['search'])
 
-        #ALERT: NEVER PASS USER INPUT AS EVALUATED VARIABLES
-        #use literals for that
 
         if request.REQUEST.get('min_rating', None): #override min_rating if required
             actual_query.literals(min_related_rating=int(request.REQUEST['min_rating']))
