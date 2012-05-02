@@ -28,13 +28,16 @@ Simple with literals
 ::
 
     #define default literals
-    q0 = FilterQuerySet('Q(text__icontains="{literal_text}")', 'someapp.somemodel', literal_parameter='"sometext"')
+    q0 = FilterQuerySet('Q(text__icontains="{literal_text}")', 
+                        'someapp.somemodel', 
+                        literal_parameter='"sometext"')
 
     #new queryset with different `literal_text` value
     q1 = q0.literal(literal_text='"some_other_text"').objects.all()
     #literals are parsed with safe `ast.literal_eval` and can be taken from user input
 
-    #q1 can be pickled and thus user search can be stored in db, if to keep different `FilterQuerySet` for each user.
+    #q1 can be pickled and thus user search can be stored in db
+    #if to keep different `FilterQuerySet` for each user.
     loads(dumps(q1)).objects.all() #same result
 
 =================================================================================
@@ -58,7 +61,9 @@ models.py::
 
 views.py::
 
-    search_query = 'Q(text__icontains="{search}")&Q(related_field__in=related.filter(rating__gte={min_related_rating}))'
+    search_query = 'Q(text__icontains="{search}")\
+&Q(related_field__in=related.filter(rating__gte={min_related_rating}))'
+
     default_search_queryset = \
         FilterQuerySet(query, 'someapp.somemodel', min_related_rating='3')
 
