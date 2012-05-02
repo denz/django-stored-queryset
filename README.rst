@@ -40,9 +40,9 @@ Simple with literals
     #if to keep different `FilterQuerySet` for each user.
     loads(dumps(q1)).objects.all() #same result
 
-=================================================================================
+
 More complex - user specific search with related fields and persistent parameters
-=================================================================================
+---------------------------------------------------------------------------------
 
 models.py::
 
