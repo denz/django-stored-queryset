@@ -1,19 +1,10 @@
 from pickle import dumps, loads
-from functools import partial
+from functools import partial, wraps
 from ast import literal_eval
 from copy import copy
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-
-
-class StoredQuerySetParser(object):
-    Q = Q
-
-    def get_Q(self, query_string, eval_locals={}, literals={}):
-        literals = dict((k, literal_eval(v)) for (k, v) in literals.items())
-        return eval(query_string.format(**literals), {'Q': Q}, eval_locals)
-
 
 def manager_property():
     def fget(self):
@@ -21,7 +12,7 @@ def manager_property():
 
     def fset(self, name):
         self._manager_name = name
-        self._manager = getattr(self.model, self._manager_name)
+        self._manager = copy(getattr(self.model, self._manager_name))
 
     def fdel(self):
         del self._foo
@@ -31,19 +22,34 @@ def manager_property():
 def default_manager_getter(self):
     return self()
 
+def patch_query_set(stored):
+    orig_get_query_set = stored.manager.get_query_set
+    if not getattr(orig_get_query_set, 'eval_appent', False):
+        @wraps(orig_get_query_set)
+        def get_query_set(self, *args, **kwargs):
+            return stored.get_query_set(orig_get_query_set(*args, **kwargs))
+        get_query_set.eval_appent = True
+        stored.manager.get_query_set = get_query_set.__get__(stored.manager,
+                                                             stored.manager.__class__)
 
-class StoredQuerySetBase(StoredQuerySetParser):
+class FilterQuerySet(object):
+    Q = Q
     __slots__ = ['selector',
                  'query',
                  '_literals',
                  '_manager_name',
                  '_manager',
-                 '_model']
+                 '_model',
+                 '_eval_locals']
+    
+    def get_query_set(self, queryset):
+        literals = dict((k, literal_eval(v)) for (k, v) in self._literals.items())
+        query = eval(self.query.format(**literals), {'Q': FilterQuerySet.Q}, self._eval_locals)
+        return queryset.filter(query)
 
     def literals(self, **literals):
-        query = copy(self)
-        query._literals.update(literals)
-        return query
+        self._literals.update(literals)
+        return self
 
     def get_model(self):
         if not hasattr(self, '_model'):
@@ -67,6 +73,8 @@ class StoredQuerySetBase(StoredQuerySetParser):
         self.query = query
         self._literals = literals
         self.manager = manager
+        self._eval_locals = {}
+        patch_query_set(self)
 
     def __getstate__(self):
         return dict((k, getattr(self, k)) for k in self.__slots__[:4])
@@ -75,24 +83,13 @@ class StoredQuerySetBase(StoredQuerySetParser):
         self.__init__(dict['query'],
                       dict['selector'],
                       dict['_manager_name'],
-                      **dict['_literals'])
+                    **dict['_literals'])
 
     def __call__(self, **eval_locals):
-        return self.get_query_set(self.get_Q(self.query,
-                                             eval_locals,
-                                             self._literals))
+        self._eval_locals.update(eval_locals)
+        return self
 
     def __getattr__(self, name):
         return getattr(self.manager, name)
-
-
-class FilterQuerySet(StoredQuerySetBase):
-    def get_query_set(self, q):
-        return self.manager.filter(q)
-
-
-class ExcludeQuerySet(StoredQuerySetBase):
-    def get_query_set(self, q):
-        return self.manager.exclude(q)
 
 StoredQuerySet = FilterQuerySet

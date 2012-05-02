@@ -60,6 +60,7 @@ if __name__ == '__main__':
         include_package_data=True,
         zip_safe=True,
         test_suite='test',
+        install_requires=['django', ],
         classifiers=[
             'License :: OSI Approved',
             'License :: OSI Approved :: GNU General Public License (GPL)',
