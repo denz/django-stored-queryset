@@ -88,11 +88,9 @@ views.py::
             def store_search(query):
                 pass
         
-        actual_query = query(related=related).literals(search=request.REQUEST['search'])
-        #or in other order: actual_query = query.literals(search=request.REQUEST['search'])(related=related)
-        #or by parts
-        #actual_query = query.literals(search=request.REQUEST['search'])
-        #actual_query = actual_query(related=related)
+        actual_query = query(related=related)
+        if request.REQUEST.get('search', None): #bonus: previus search stored too
+            actual_query.literals(search=request.REQUEST['search'])
 
         #ALERT: NEVER PASS USER INPUT AS EVALUATED VARIABLES
         #use literals for that
