@@ -88,7 +88,9 @@ views.py::
             def store_search(query):
                 pass
         
+        #define evaluated variables
         actual_query = query(related=related)
+
         #ALERT: NEVER PASS USER INPUT AS EVALUATED VARIABLES
         #use literals for that
 
