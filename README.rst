@@ -62,7 +62,7 @@ models.py::
 views.py::
 
     search_query = 'Q(text__icontains="{search}")\
-&Q(related_field__in=related.filter(rating__gte={min_related_rating}))'
+    &Q(related_field__in=related.filter(rating__gte={min_related_rating}))'
 
     default_search_queryset = \
         FilterQuerySet(query, 'someapp.somemodel', min_related_rating='3')
