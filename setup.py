@@ -16,7 +16,7 @@ def package_env(file_name, strict=False):
     else:
         return u''
 
-PROJECT = u'django-stored-querys'
+PROJECT = u'django-stored-queryset'
 
 VERSION = package_env('VERSION')
 URL = package_env('URL')
