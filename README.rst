@@ -94,12 +94,12 @@ views.py::
         #ALERT: NEVER PASS USER INPUT AS EVALUATED VARIABLES
         #use literals for that
 
-        if request.REQUEST.get('search', None): #bonus: previus search stored too
+        if request.REQUEST.get('search', None): #bonus: previous search stored too
             actual_query.literals(search=request.REQUEST['search'])
 
 
         if request.REQUEST.get('min_rating', None): #override min_rating if required
-            actual_query.literals(min_related_rating=int(request.REQUEST['min_rating']))
+            actual_query.literals(min_related_rating=request.REQUEST['min_rating'])
 
         #now we can store it together with last search string and `min_related_rating` parameter
         store_search(actual_query)
@@ -107,3 +107,10 @@ views.py::
         #so next time we have to call query with `related` again.
 
         return render_to_response('search.html', {'items':actual_query.objects})
+
+INSTALLATION
+============
+Try one of these::
+
+    pip install django-stored-queryset
+    easy_install django-stored-queryset
